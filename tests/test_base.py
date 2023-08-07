@@ -3,6 +3,7 @@ import unittest
 from datetime import datetime
 from models.base_model import BaseModel
 
+
 class TestBaseModel(unittest.TestCase):
 
     def setUp(self):
@@ -31,6 +32,19 @@ class TestBaseModel(unittest.TestCase):
         self.assertIn('[BaseModel]', obj_str)
         self.assertIn(self.base_model.id, obj_str)
 
+    def test_init_with_kwargs(self):
+        kwargs = {
+            'id': 'test_id',
+            'created_at': '2023-08-01T12:34:56.789012',
+            'updated_at': '2023-08-02T12:34:56.789012'
+        }
+        base_model = BaseModel(**kwargs)
+        self.assertEqual(base_model.id, 'test_id')
+        self.assertEqual(base_model.created_at,
+                         datetime(2023, 8, 1, 12, 34, 56, 789012))
+        self.assertEqual(base_model.updated_at,
+                         datetime(2023, 8, 2, 12, 34, 56, 789012))
+
+
 if __name__ == '__main__':
     unittest.main()
-
