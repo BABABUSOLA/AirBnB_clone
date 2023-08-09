@@ -2,6 +2,7 @@
 
 import json
 import os.path
+import re
 
 
 class FileStorage:
@@ -12,6 +13,17 @@ class FileStorage:
 
     __file_path = "file.json"
     __objects = {}
+
+    @staticmethod
+    def camel_to_snake(name):
+        """
+        Convert a camel case string to lowercase with underscores.
+
+        :param name: The input string in camel case.
+        :return: The converted string in lowercase with underscores.
+        """
+        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
     def all(self):
         """
@@ -47,8 +59,9 @@ class FileStorage:
                 obj_dict = json.load(file)
                 for key, value in obj_dict.items():
                     class_name, obj_id = key.split('.')
-                    module_name = "models." + class_name
+                    module_name = "models." + self.camel_to_snake(class_name)
                     module = __import__(module_name, fromlist=[class_name])
-                    cls = getattr(module, class_name)
-                    instance = cls(**value)
-                    self.__objects[key] = instance
+                    cls = globals().get(class_name)
+                    if cls is not None:
+                        instance = cls(**value)
+                        self.__objects[key] = instance

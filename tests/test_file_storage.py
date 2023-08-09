@@ -11,8 +11,9 @@ class TestFileStorage(unittest.TestCase):
     def setUp(self):
         self.storage = FileStorage()
         self.base_model = BaseModel()
-        self.base_model_key = f"{self.base_model.__class__.__name__}
-        .{self.base_model.id}"
+        self.base_model_key = (
+            f"{self.base_model.__class__.__name__}.{self.base_model.id}"
+        )
 
     def tearDown(self):
         if os.path.exists(FileStorage._FileStorage__file_path):
