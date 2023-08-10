@@ -65,18 +65,28 @@ class HBNBCommand(cmd.Cmd):
 
         if not args:
             print("** class name missing **")
-        elif len(args) < 2:
+            return
+
+        class_name = args[0]
+
+        if class_name not in globals() or not issubclass(globals()[class_name], BaseModel):
+            print("** class doesn't exist **")
+            return
+
+        if len(args) < 2:
             print("** instance id missing **")
-        else:
-            class_name, instance_id = args[0], args[1]
-            instance_key = f"{class_name}.{instance_id}"
-            if class_name not in storage.all():
-                print("** class doesn't exist **")
-            elif instance_key not in storage.all()[class_name]:
-                print("** no instance found **")
-            else:
-                instance = self.storage.all()[class_name][instance_key]
-                print(instance)
+            return
+
+        instance_id = args[1]
+        instance_key = f"{class_name}.{instance_id}"
+
+        if instance_key not in storage.all():
+            print("** no instance found **")
+            return
+
+        instance = storage.all()[instance_key]
+        print(instance)
+
 
 
 if __name__ == "__main__":
