@@ -124,7 +124,86 @@ class HBNBCommand(cmd.Cmd):
             storage.reload()
 
         print("Instance deleted successfully.")
+    
+    def do_all(self, arg):
+        """
+        Prints all string representation of instances based 
+        on the class name or prints all instances.
+        Usage: all <class name> or all.
+        """
+        if not arg:
+            # Print all instances if no class name is provided
+            instances = storage.all().values()
+        else:
+            class_name = arg
+            if class_name not in globals() or not issubclass(globals()[class_name], BaseModel):
+                print("** class doesn't exist **")
+                return
+            # Filter instances by the provided class name
+            instances = [instance for instance in storage.all().values() 
+                    if type(instance).__name__ == class_name]
 
+        # Print the string representation of instances
+        for instance in instances:
+            print(instance)
+
+    def do_update(self, arg):
+        """
+        Updates an instance based on the class name and id by adding or updating attribute.
+        Usage: update <class name> <id> <attribute name> "<attribute value>"
+        """
+        args = arg.split()
+
+        if len(args) < 2:
+            print("** class name missing **")
+            return
+
+        class_name = args[1]
+
+        if len(args) < 3:
+            print("** instance id missing **")
+            return
+
+        instance_id = args[2]
+        instance_key = f"{class_name}.{instance_id}"
+
+        if instance_key not in storage.all():
+            print("** no instance found **")
+            return
+
+        if len(args) < 4:
+            print("** attribute name missing **")
+            return
+
+        attribute_name = args[3]
+        if attribute_name not in storage.all()[instance_key].to_dict():
+            print("** attribute name missing **")
+            return
+
+        if len(args) < 5:
+            print("** value missing **")
+            return
+
+        attribute_value = " ".join(args[4:])
+        if not (attribute_value.startswith('"') and attribute_value.endswith('"')):
+            print("** attribute value must be enclosed in double quotes **")
+            return
+
+        attribute_value = attribute_value[1:-1]
+
+        try:
+            if isinstance(getattr(storage.all()[instance_key], attribute_name), int):
+                attribute_value = int(attribute_value)
+            elif isinstance(getattr(storage.all()[instance_key], attribute_name), float):
+                attribute_value = float(attribute_value)
+            """ Update the instance attribute and save to the JSON file"""
+            setattr(storage.all()[instance_key], attribute_name, attribute_value)
+            storage.save()
+        except (ValueError, TypeError):
+            print("** invalid value **")
+            return
+
+        print("Instance updated successfully.")
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
