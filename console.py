@@ -79,6 +79,7 @@ class HBNBCommand(cmd.Cmd):
 
         instance_id = args[1]
         instance_key = f"{class_name}.{instance_id}"
+        print(instance_key)
 
         if instance_key not in storage.all():
             print("** no instance found **")
@@ -87,6 +88,42 @@ class HBNBCommand(cmd.Cmd):
         instance = storage.all()[instance_key]
         print(instance)
 
+    def do_destroy(self, arg):
+        """
+        Delete an instance based on the class name 
+        and id (save the change into the JSON file).
+        Usage: destroy <class name> <id>
+        """
+        args = arg.split()
+
+        if not args:
+            print("** class name missing **")
+            return
+
+        class_name = args[0]
+
+        if class_name not in globals() or not issubclass(globals()[class_name], BaseModel):
+            print("** class doesn't exist **")
+            return
+
+        if len(args) < 2:
+            print("** instance id missing **")
+            return
+
+        instance_id = args[1]
+        instance_key = f"{class_name}.{instance_id}"
+
+        if instance_key not in storage.all():
+            print("** no instance found **")
+            return
+
+        del storage.all()[instance_key]
+        storage.save()
+
+        if not any(key.startswith(class_name + ".") for key in storage.all()):
+            storage.reload()
+
+        print("Instance deleted successfully.")
 
 
 if __name__ == "__main__":
