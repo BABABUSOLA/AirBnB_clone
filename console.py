@@ -49,7 +49,6 @@ class HBNBCommand(cmd.Cmd):
             if class_name in globals() and issubclass(globals()[class_name], BaseModel):
                 instance = globals()[class_name]()
                 storage.new(instance)
-                storage.save()
                 print(instance.id)
             else:
                 print("** class doesn't exist **")
@@ -131,6 +130,7 @@ class HBNBCommand(cmd.Cmd):
         on the class name or prints all instances.
         Usage: all <class name> or all.
         """
+        storage.reload()
         if not arg:
             # Print all instances if no class name is provided
             instances = storage.all().values()
