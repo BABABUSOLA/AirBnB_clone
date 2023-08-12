@@ -80,9 +80,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         class_name = args[0]
-
-        if class_name not in globals() or not \
-                issubclass(globals()[class_name], BaseModel):
+        if class_name not in HBNBCommand.__classes:
             print("** class doesn't exist **")
             return
 
@@ -114,9 +112,8 @@ class HBNBCommand(cmd.Cmd):
             return
 
         class_name = args[0]
-
-        if class_name not in globals() or not \
-                issubclass(globals()[class_name], BaseModel):
+        
+        if class_name not in HBNBCommand.__classes:
             print("** class doesn't exist **")
             return
 
@@ -141,23 +138,43 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, arg):
         """
-        Prints all string representation of instances based
-        on the class name or prints all instances.
-        Usage: all <class name> or all.
+            Prints all string representation of instances based
+            on the class name or prints all instances.
+            Usage: all <class name> or all <class name>,all()
         """
 
         if not arg:
             """Print all instances if no class name is provided"""
             instances = storage.all().values()
         else:
-            class_name = arg
-            if class_name not in globals() or not \
-                    issubclass(globals()[class_name], BaseModel):
-                print("** class doesn't exist **")
+            """Check if the input is in the format <class name>,all()"""
+            """Split the command to check for the "all" method"""
+            parts = arg.split('.')
+            print(parts)
+            if len(parts) == 2 and parts[1] == 'all()':
+                """The input format is <class name>.all()"""
+                class_name = parts[0]
+                if class_name not in HBNBCommand.__classes:
+                    print("** class doesn't exist **")
+                    return
+                """Use the all method from storage to 
+                retrieve all instances of the specified class
+                """
+                instances = storage.all(class_name).values()
+            elif len(parts) == 1:
+                """The input format is <class name>"""
+                class_name = arg
+                if class_name not in HBNBCommand.__classes:
+                    print("** class doesn't exist **")
+                    return
+                """Filter instances by the provided class name"""
+                instances = [instance for instance in storage.all().values()
+                                if type(instance).__name__ == class_name]
+
+
+            else:
+                print("unknown syntax")
                 return
-            """Filter instances by the provided class name"""
-            instances = [instance for instance in storage.all().values()
-                         if type(instance).__name__ == class_name]
 
         """Print the string representation of instances"""
         for instance in instances:
