@@ -2,7 +2,7 @@
 
 from uuid import uuid4
 from datetime import datetime
-from models.__init__ import storage
+import models
 
 
 class BaseModel:
@@ -29,7 +29,7 @@ class BaseModel:
                 setattr(self, key, value)
             
         else:
-            storage.new(self)
+            models.storage.new(self)
 
     def __str__(self):
         """
@@ -46,7 +46,7 @@ class BaseModel:
         and call the save method on storage
         """
         self.updated_at = datetime.now()
-        storage.save()
+        models.storage.save()
 
     def to_dict(self):
         """
@@ -56,14 +56,7 @@ class BaseModel:
         :return: A dictionary containing keys/values of instance attributes.
         """
         obj_dict = self.__dict__.copy()
-        obj_dict['__class__'] = self.__class__.__name__
         obj_dict['created_at'] = self.created_at.isoformat()
         obj_dict['updated_at'] = self.updated_at.isoformat()
+        obj_dict['__class__'] = self.__class__.__name__
         return obj_dict
-
-
-""" Create an instance of the BaseModel"""
-base_model_instance = BaseModel()
-
-""" Convert the instance to a dictionary using the to_dict method"""
-base_model_dict = base_model_instance.to_dict()

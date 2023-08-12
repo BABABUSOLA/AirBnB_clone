@@ -3,6 +3,13 @@
 import json
 import os.path
 import re
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.review import Review
 
 
 class FileStorage:
@@ -31,7 +38,7 @@ class FileStorage:
 
         :return: A dictionary containing all stored objects.
         """
-        return self.__objects
+        return FileStorage.__objects
 
     def new(self, obj):
         """
@@ -40,29 +47,24 @@ class FileStorage:
         :param obj: An object to be stored.
         """
         key = f"{obj.__class__.__name__}.{obj.id}"
-        self.__objects[key] = obj
-        self.save()
+        FileStorage.__objects[key] = obj
 
     def save(self):
         """
         Serializes __objects to the JSON file (path: __file_path).
         """
-        obj_dict = {key: obj.to_dict() for key, obj in self.__objects.items()}
-        with open(self.__file_path, 'w') as file:
+        obj_dict = {key: obj.to_dict() for key, obj in FileStorage.__objects.items()}
+        with open(FileStorage.__file_path, 'w') as file:
             json.dump(obj_dict, file)
 
     def reload(self):
-        """
-        Deserializes the JSON file to __objects (only if the JSON file exists).
-        """
-        if os.path.exists(self.__file_path):
-            with open(self.__file_path, 'r') as file:
-                obj_dict = json.load(file)
-                for key, value in obj_dict.items():
-                    class_name, obj_id = key.split('.')
-                    module_name = "models." + self.camel_to_snake(class_name)
-                    module = __import__(module_name, fromlist=[class_name])
-                    cls = globals().get(class_name)
-                    if cls is not None:
-                        instance = cls(**value)
-                        self.__objects[key] = instance
+            """Deserialize the JSON file __file_path to __objects, if it exists."""
+            try:
+                with open(FileStorage.__file_path) as f:
+                    objdict = json.load(f)
+                    for o in objdict.values():
+                        cls_name = o["__class__"]
+                        del o["__class__"]
+                        self.new(eval(cls_name)(**o))
+            except FileNotFoundError:
+                return
