@@ -9,7 +9,15 @@ from models import storage
 
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
-
+    __classes = {
+        "BaseModel",
+        "User",
+        "State",
+        "City",
+        "Place",
+        "Amenity",
+        "Review"
+    }
     def emptyline(self):
         """
         Empty line
@@ -48,8 +56,7 @@ class HBNBCommand(cmd.Cmd):
 
         try:
             class_name = arg.split()[0]
-            if class_name in globals() and \
-                    issubclass(globals()[class_name], BaseModel):
+            if class_name in HBNBCommand.__classes:
                 instance = globals()[class_name]()
                 storage.new(instance)
                 print(instance.id)
