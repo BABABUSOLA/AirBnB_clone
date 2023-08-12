@@ -6,6 +6,7 @@ import os.path
 from models.base_model import BaseModel
 from models import storage
 
+
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
 
@@ -24,7 +25,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_EOF(self, line):
         """
-        EOF 
+        EOF
         """
         return True
 
@@ -37,7 +38,8 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, arg):
         """
-        Create a new instance of BaseModel, save it (to the JSON file), and print the id.
+        Create a new instance of BaseModel,
+        save it (to the JSON file), and print the id.
         Usage: create <class name>
         """
         if not arg:
@@ -46,7 +48,8 @@ class HBNBCommand(cmd.Cmd):
 
         try:
             class_name = arg.split()[0]
-            if class_name in globals() and issubclass(globals()[class_name], BaseModel):
+            if class_name in globals() and \
+                    issubclass(globals()[class_name], BaseModel):
                 instance = globals()[class_name]()
                 storage.new(instance)
                 print(instance.id)
@@ -57,7 +60,8 @@ class HBNBCommand(cmd.Cmd):
 
     def do_show(self, arg):
         """
-        Print the string representation of an instance based on the class name and id.
+        Print the string representation of an
+        instance based on the class name and id.
         Usage: show <class name> <id>
         """
         args = arg.split()
@@ -68,7 +72,8 @@ class HBNBCommand(cmd.Cmd):
 
         class_name = args[0]
 
-        if class_name not in globals() or not issubclass(globals()[class_name], BaseModel):
+        if class_name not in globals() or not \
+                issubclass(globals()[class_name], BaseModel):
             print("** class doesn't exist **")
             return
 
@@ -89,7 +94,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_destroy(self, arg):
         """
-        Delete an instance based on the class name 
+        Delete an instance based on the class name
         and id (save the change into the JSON file).
         Usage: destroy <class name> <id>
         """
@@ -101,7 +106,8 @@ class HBNBCommand(cmd.Cmd):
 
         class_name = args[0]
 
-        if class_name not in globals() or not issubclass(globals()[class_name], BaseModel):
+        if class_name not in globals() or not \
+                issubclass(globals()[class_name], BaseModel):
             print("** class doesn't exist **")
             return
 
@@ -123,35 +129,39 @@ class HBNBCommand(cmd.Cmd):
             storage.reload()
 
         print("Instance deleted successfully.")
-    
+
     def do_all(self, arg):
         """
-        Prints all string representation of instances based 
+        Prints all string representation of instances based
         on the class name or prints all instances.
         Usage: all <class name> or all.
         """
-        storage.reload()
+
         if not arg:
-            # Print all instances if no class name is provided
+            """Print all instances if no class name is provided"""
             instances = storage.all().values()
         else:
             class_name = arg
-            if class_name not in globals() or not issubclass(globals()[class_name], BaseModel):
+            if class_name not in globals() or not \
+                    issubclass(globals()[class_name], BaseModel):
                 print("** class doesn't exist **")
                 return
-            # Filter instances by the provided class name
-            instances = [instance for instance in storage.all().values() 
-                    if type(instance).__name__ == class_name]
+            """Filter instances by the provided class name"""
+            instances = [instance for instance in storage.all().values()
+                         if type(instance).__name__ == class_name]
 
-        # Print the string representation of instances
+        """Print the string representation of instances"""
         for instance in instances:
             print(instance)
 
     def do_update(self, arg):
         """
-        Updates an instance based on the class name and id by adding or updating attribute.
-        Usage: update <class name> <id> <attribute name> "<attribute value>"
+        Updates an instance based on the class name and
+        id by adding or updating attribute.
+        Usage: update <class name> <id> <attribute name>
+        "<attribute value>"
         """
+
         args = arg.split()
 
         if len(args) < 2:
@@ -185,25 +195,30 @@ class HBNBCommand(cmd.Cmd):
             return
 
         attribute_value = " ".join(args[4:])
-        if not (attribute_value.startswith('"') and attribute_value.endswith('"')):
+        if not (attribute_value.startswith('"') and
+                attribute_value.endswith('"')):
             print("** attribute value must be enclosed in double quotes **")
             return
 
         attribute_value = attribute_value[1:-1]
 
         try:
-            if isinstance(getattr(storage.all()[instance_key], attribute_name), int):
+            if isinstance(getattr(storage.all()[instance_key],
+                                  attribute_name), int):
                 attribute_value = int(attribute_value)
-            elif isinstance(getattr(storage.all()[instance_key], attribute_name), float):
+            elif isinstance(getattr(storage.all()[instance_key],
+                                    attribute_name), float):
                 attribute_value = float(attribute_value)
             """ Update the instance attribute and save to the JSON file"""
-            setattr(storage.all()[instance_key], attribute_name, attribute_value)
+            setattr(storage.all()[instance_key],
+                    attribute_name, attribute_value)
             storage.save()
         except (ValueError, TypeError):
             print("** invalid value **")
             return
 
         print("Instance updated successfully.")
+
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
