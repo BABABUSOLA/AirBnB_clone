@@ -18,6 +18,7 @@ class HBNBCommand(cmd.Cmd):
         "Amenity",
         "Review"
     }
+
     def emptyline(self):
         """
         Empty line
