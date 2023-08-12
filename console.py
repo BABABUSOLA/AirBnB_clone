@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import sys
 import cmd
 import json
 import os.path
@@ -227,6 +228,18 @@ class HBNBCommand(cmd.Cmd):
 
         print("Instance updated successfully.")
 
+def main():
+    """Check if input is being piped"""
+    if not sys.stdin.isatty():
+        """Read commands from stdin (piped input)"""
+        for line in sys.stdin:
+            line = line.strip()
+            if not line:
+                continue
+            HBNBCommand().onecmd(line)
+    else:
+        """ Interactive mode"""
+        HBNBCommand().cmdloop()
 
 if __name__ == "__main__":
-    HBNBCommand().cmdloop()
+    main()
