@@ -2,17 +2,29 @@
 
 import sys
 import re
+from shlex import split
 import cmd
 import json
 import os.path
-from models.base_model import BaseModel
-from models.user import User
-from models.state import State
-from models.city import City
-from models.place import Place
-from models.amenity import Amenity
-from models.review import Review
 from models import storage
+
+
+def parse(arg):
+    curly_braces = re.search(r"\{(.*?)\}", arg)
+    brackets = re.search(r"\[(.*?)\]", arg)
+    if curly_braces is None:
+        if brackets is None:
+            return [i.strip(",") for i in split(arg)]
+        else:
+            lexer = split(arg[:brackets.span()[0]])
+            retl = [i.strip(",") for i in lexer]
+            retl.append(brackets.group())
+            return retl
+    else:
+        lexer = split(arg[:curly_braces.span()[0]])
+        retl = [i.strip(",") for i in lexer]
+        retl.append(curly_braces.group())
+        return retl
 
 
 class HBNBCommand(cmd.Cmd):
@@ -45,6 +57,27 @@ class HBNBCommand(cmd.Cmd):
         EOF
         """
         return True
+
+    def default(self, arg):
+        """Default behavior for cmd module when input is invalid"""
+        argdict = {
+            "all": self.do_all,
+            "show": self.do_show,
+            "destroy": self.do_destroy,
+            "count": self.do_count,
+            "update": self.do_update
+        }
+        match = re.search(r"\.", arg)
+        if match is not None:
+            argl = [arg[:match.span()[0]], arg[match.span()[1]:]]
+            match = re.search(r"\((.*?)\)", argl[1])
+            if match is not None:
+                command = [argl[1][:match.span()[0]], match.group()[1:-1]]
+                if command[0] in argdict.keys():
+                    call = "{} {}".format(argl[0], command[1])
+                    return argdict[command[0]](call)
+        print("*** Unknown syntax: {}".format(arg))
+        return False
 
     def do_create(self, arg):
         """
@@ -137,46 +170,21 @@ class HBNBCommand(cmd.Cmd):
         print("Instance deleted successfully.")
 
     def do_all(self, arg):
-        """
-            Prints all string representation of instances based
-            on the class name or prints all instances.
-            Usage: all <class name> or all <class name>,all()
-        """
+        """Check if the input is in the format <class name>,all()"""
+        """Split the command to check for the "all" method"""
+        parts = parse(arg)
 
-        if not arg:
-            """Print all instances if no class name is provided"""
-            instances = storage.all().values()
+        print(parts)
+        if len(parts) > 0 and parts[0] not in HBNBCommand.__classes:
+            print("** class doesn't exist **")
         else:
-            """Check if the input is in the format <class name>,all()"""
-            """Split the command to check for the "all" method"""
-            parts = arg.split('.')
-            print(parts)
-            if len(parts) == 2 and parts[1] == 'all()':
-                """The input format is <class name>.all()"""
-                class_name = parts[0]
-                if class_name not in HBNBCommand.__classes:
-                    print("** class doesn't exist **")
-                    return
-                """Use the all method from storage to
-                retrieve all instances of the specified class
-                """
-                instances = storage.all(class_name).values()
-            elif len(parts) == 1:
-                """The input format is <class name>"""
-                class_name = arg
-                if class_name not in HBNBCommand.__classes:
-                    print("** class doesn't exist **")
-                    return
-                """Filter instances by the provided class name"""
-                instances = [instance for instance in storage.all().values()
-                             if type(instance).__name__ == class_name]
-            else:
-                print("unknown syntax")
-                return
-
-        """Print the string representation of instances"""
-        for instance in instances:
-            print(instance)
+            objl = []
+            for obj in storage.all().values():
+                if len(parts) > 0 and parts[0] == obj.__class__.__name__:
+                    objl.append(obj.__str__())
+                elif len(parts) == 0:
+                    objl.append(obj.__str__())
+            print(objl)
 
     def do_update(self, arg):
         """
@@ -243,44 +251,14 @@ class HBNBCommand(cmd.Cmd):
 
         print("Instance updated successfully.")
 
-    def precmd(self, line):
-        """Make the app work non-interactively"""
-        if not sys.stdin.isatty():
-            print()
-
-        """Use re.match to directly extract components"""
-        checks = re.match(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", line)
-        if checks:
-            class_name = checks[1]
-            command = checks[2]
-            args = checks[3]
-
-            if args is None:
-                line = f"{command} {class_name}"
-                return ''
-            else:
-                # Use re.match to extract components
-                args_checks = re.match(r"^\"([^\"]*)\"(?:, (.*))?$", args)
-                instance_id = args_checks[1]
-
-                if args_checks[2] is None:
-                    line = f"{command} {class_name} {instance_id}"
-                else:
-                    attribute_part = args_checks[2]
-                    line = f"{command} {class_name} \
-                            {instance_id} {attribute_part}"
-                return ''
-
-        return cmd.Cmd.precmd(self, line)
-
     def do_count(self, line):
         '''Usage: 1. count <class name> | 2. <class name>.count()
             Function: Counts all the instances  of the class
         '''
         count = 0
-        for key in storage.all().keys():
-            class_name, instance_id = key.split(".")
-            if line == class_name:
+        arg = parse(line)
+        for key in storage.all().values():
+            if arg[0] == key.__class__.__name__:
                 count += 1
         print(count)
 
