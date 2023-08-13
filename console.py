@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+import re
 import cmd
 import json
 import os.path
@@ -39,13 +40,6 @@ class HBNBCommand(cmd.Cmd):
         """
         return True
 
-    def cmdloop(self, intro=None):
-        try:
-            super().cmdloop(intro)
-        except KeyboardInterrupt:
-            print("\nQuit command to exit the program")
-            self.cmdloop()
-
     def do_create(self, arg):
         """
         Create a new instance of BaseModel,
@@ -59,7 +53,7 @@ class HBNBCommand(cmd.Cmd):
         try:
             class_name = arg.split()[0]
             if class_name in HBNBCommand.__classes:
-                instance = globals()[class_name]()
+                instance = storage.classes()[class_name]()
                 storage.new(instance)
                 print(instance.id)
             else:
@@ -112,7 +106,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         class_name = args[0]
-        
+
         if class_name not in HBNBCommand.__classes:
             print("** class doesn't exist **")
             return
@@ -157,7 +151,7 @@ class HBNBCommand(cmd.Cmd):
                 if class_name not in HBNBCommand.__classes:
                     print("** class doesn't exist **")
                     return
-                """Use the all method from storage to 
+                """Use the all method from storage to
                 retrieve all instances of the specified class
                 """
                 instances = storage.all(class_name).values()
@@ -169,9 +163,7 @@ class HBNBCommand(cmd.Cmd):
                     return
                 """Filter instances by the provided class name"""
                 instances = [instance for instance in storage.all().values()
-                                if type(instance).__name__ == class_name]
-
-
+                             if type(instance).__name__ == class_name]
             else:
                 print("unknown syntax")
                 return
@@ -245,18 +237,47 @@ class HBNBCommand(cmd.Cmd):
 
         print("Instance updated successfully.")
 
-def main():
-    """Check if input is being piped"""
-    if not sys.stdin.isatty():
-        """Read commands from stdin (piped input)"""
-        for line in sys.stdin:
-            line = line.strip()
-            if not line:
-                continue
-            HBNBCommand().onecmd(line)
-    else:
-        """ Interactive mode"""
-        HBNBCommand().cmdloop()
+    def precmd(self, line):
+        """Make the app work non-interactively"""
+        if not sys.stdin.isatty():
+            print()
+
+        """Use re.match to directly extract components"""
+        checks = re.match(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", line)
+        if checks:
+            class_name = checks[1]
+            command = checks[2]
+            args = checks[3]
+
+            if args is None:
+                line = f"{command} {class_name}"
+                return ''
+            else:
+                # Use re.match to extract components
+                args_checks = re.match(r"^\"([^\"]*)\"(?:, (.*))?$", args)
+                instance_id = args_checks[1]
+
+                if args_checks[2] is None:
+                    line = f"{command} {class_name} {instance_id}"
+                else:
+                    attribute_part = args_checks[2]
+                    line = f"{command} {class_name} \
+                            {instance_id} {attribute_part}"
+                return ''
+
+        return cmd.Cmd.precmd(self, line)
+
+    def do_count(self, line):
+        '''Usage: 1. count <class name> | 2. <class name>.count()
+            Function: Counts all the instances  of the class
+        '''
+        count = 0
+        for key in storage.all().keys():
+            class_name, instance_id = key.split(".")
+            if line == class_name:
+                count += 1
+        print(count)
+
 
 if __name__ == "__main__":
-    main()
+    HBNBCommand().cmdloop()
