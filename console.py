@@ -49,7 +49,6 @@ class HBNBCommand(cmd.Cmd):
         """
         Quit
         """
-        print(line)
         return True
 
     def do_EOF(self, line):
@@ -90,7 +89,8 @@ class HBNBCommand(cmd.Cmd):
             return
 
         try:
-            class_name = arg.split()[0]
+            args = parse(arg)
+            class_name = args[0]
             if class_name in HBNBCommand.__classes:
                 instance = storage.classes()[class_name]()
                 storage.new(instance)
@@ -106,7 +106,7 @@ class HBNBCommand(cmd.Cmd):
         instance based on the class name and id.
         Usage: show <class name> <id>
         """
-        args = arg.split()
+        args = parse(arg)
 
         if not args:
             print("** class name missing **")
@@ -117,13 +117,12 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
 
-        if len(args) < 2:
+        if len(args) == 1:
             print("** instance id missing **")
             return
 
         instance_id = args[1]
         instance_key = f"{class_name}.{instance_id}"
-        print(instance_key)
 
         if instance_key not in storage.all():
             print("** no instance found **")
@@ -138,7 +137,7 @@ class HBNBCommand(cmd.Cmd):
         and id (save the change into the JSON file).
         Usage: destroy <class name> <id>
         """
-        args = arg.split()
+        args = parse(arg)
 
         if not args:
             print("** class name missing **")
@@ -150,22 +149,19 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
 
-        if len(args) < 2:
+        if len(args) == 1:
             print("** instance id missing **")
             return
 
         instance_id = args[1]
         instance_key = f"{class_name}.{instance_id}"
 
-        if instance_key not in storage.all():
+        if instance_key not in storage.all().keys():
             print("** no instance found **")
             return
 
         del storage.all()[instance_key]
         storage.save()
-
-        if not any(key.startswith(class_name + ".") for key in storage.all()):
-            storage.reload()
 
         print("Instance deleted successfully.")
 
@@ -194,61 +190,57 @@ class HBNBCommand(cmd.Cmd):
         "<attribute value>"
         """
 
-        args = arg.split()
+        args = parse(arg)
 
-        if len(args) < 2:
+        if len(args) == 0:
             print("** class name missing **")
             return
 
-        class_name = args[1]
+        class_name = args[0]
 
-        if len(args) < 3:
+        if class_name not in HBNBCommand.__classes:
+            print("** class  doesn't exist **")
+            return
+
+        if len(args) == 1:
             print("** instance id missing **")
             return
 
-        instance_id = args[2]
+        instance_id = args[1]
         instance_key = f"{class_name}.{instance_id}"
 
         if instance_key not in storage.all():
             print("** no instance found **")
             return
 
-        if len(args) < 4:
+        if len(args) == 2:
             print("** attribute name missing **")
             return
 
-        attribute_name = args[3]
-        if attribute_name not in storage.all()[instance_key].to_dict():
-            print("** attribute name missing **")
-            return
+        if len(args) == 3:
+            try:
+                type(eval(args[2])) != dict
+            except NAmeError:
+                print("** value missing **")
+                return
 
-        if len(args) < 5:
-            print("** value missing **")
-            return
-
-        attribute_value = " ".join(args[4:])
-        if not (attribute_value.startswith('"') and
-                attribute_value.endswith('"')):
-            print("** attribute value must be enclosed in double quotes **")
-            return
-
-        attribute_value = attribute_value[1:-1]
-
-        try:
-            if isinstance(getattr(storage.all()[instance_key],
-                                  attribute_name), int):
-                attribute_value = int(attribute_value)
-            elif isinstance(getattr(storage.all()[instance_key],
-                                    attribute_name), float):
-                attribute_value = float(attribute_value)
-            """ Update the instance attribute and save to the JSON file"""
-            setattr(storage.all()[instance_key],
-                    attribute_name, attribute_value)
-            storage.save()
-        except (ValueError, TypeError):
-            print("** invalid value **")
-            return
-
+        if len(args) == 4:
+            obj = storage.all()[instance_key]
+            if args[2] in obj.__clas__.__dict__.keys():
+                valtype = type(obj.__class__.__dict__[args[2]])
+                obj.__dict__[args[2]] = valtype(args[3])
+            else:
+                obj.__dict__[args[2]] = args[3]
+        elif type(eval(args[2])) == dict:
+            obj = storage.all()[instance_key]
+            for k, v in eval(args[2]).items():
+                if (k in obj.__class__.__dict__.keys() and
+                        type(obj.__class__.__dict__[k]) in {str, int, float}):
+                    valtype = type(obj.__class__.__dict__[k])
+                    obj.__dict__[k] = valtype(v)
+                else:
+                    obj.__dict__[k] = v
+        storage.save()
         print("Instance updated successfully.")
 
     def do_count(self, line):
