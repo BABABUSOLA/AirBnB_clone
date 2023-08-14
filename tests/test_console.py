@@ -150,22 +150,15 @@ class TestConsoleCommands(unittest.TestCase):
         self.assert_output(expected_output)
 
     def test_do_show_success(self):
-        """Test successful show of instance"""
-        """Replace this with an existing
-        instance id from your actual data
-        """
-        instance_id = "test_id"
-        """Replace this with the
-        expected string representation of the instance
-        """
-        expected_output = "** no instance found **"
-        self.input_cmd = f"show BaseModel {instance_id}"
-        """Perform the actual show action"""
-        with patch('models.storage') as mock_storage:
-            mock_storage.all.return_value = {"BaseModel.{}".format(
-                                             instance_id): expected_output}
-            self.console.onecmd(self.input_cmd)
-        self.assert_output(expected_output)
+        """Test successful show"""
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create User"))
+            testID = output.getvalue().strip()
+        with patch("sys.stdout", new=StringIO()) as output:
+            obj = storage.all()["User.{}".format(testID)]
+            command = "show User {}".format(testID)
+            self.assertFalse(HBNBCommand().onecmd(command))
+            self.assertNotIn(obj, storage.all())
 
     def test_do_all_no_class(self):
         with patch("sys.stdout", new=StringIO()) as output:
