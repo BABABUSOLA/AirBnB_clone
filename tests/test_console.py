@@ -181,5 +181,13 @@ class TestConsoleCommands(unittest.TestCase):
         expected_output = "['MyModel']\n** class doesn't exist **"
         self.assert_output(expected_output)
 
+    def test_count_object(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("BaseModel.count()"))
+            self.assertEqual("1", output.getvalue().strip())
+
+
 if __name__ == '__main__':
     unittest.main()
