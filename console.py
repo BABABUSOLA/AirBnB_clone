@@ -228,7 +228,7 @@ class HBNBCommand(cmd.Cmd):
 
         if len(args) == 4:
             obj = storage.all()[instance_key]
-            if args[2] in obj.__clas__.__dict__.keys():
+            if args[2] in obj.__class__.__dict__.keys():
                 valtype = type(obj.__class__.__dict__[args[2]])
                 obj.__dict__[args[2]] = valtype(args[3])
             else:
