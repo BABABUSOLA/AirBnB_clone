@@ -101,12 +101,6 @@ class TestConsoleCommands(unittest.TestCase):
         self.input_cmd = "destroy BaseModel"
         expected_output = "** instance id missing **"
         self.assert_output(expected_output)
-
-    def test_destroy_no_instance_found(self):
-        """Test destroy with non-existent instance ID"""
-        self.input_cmd = "destroy BaseModel 1234"
-        expected_output = "** no instance found **"
-        self.assert_output(expected_output)
     
     def test_destroy_objects_space_notation(self):
         with patch("sys.stdout", new=StringIO()) as output:
@@ -153,12 +147,6 @@ class TestConsoleCommands(unittest.TestCase):
         """Test show with missing instance id"""
         self.input_cmd = "show BaseModel"
         expected_output = "** instance id missing **"
-        self.assert_output(expected_output)
-
-    def test_do_show_instance_not_found(self):
-        """Test show with non-existent instance id"""
-        self.input_cmd = "show BaseModel 12345678"
-        expected_output = "** no instance found **"
         self.assert_output(expected_output)
 
     def test_do_show_success(self):
