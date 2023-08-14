@@ -49,12 +49,14 @@ class HBNBCommand(cmd.Cmd):
         """
         Quit
         """
+        raise SystemExit
         return True
 
     def do_EOF(self, line):
         """
         EOF
         """
+        raise SystemExit
         return True
 
     def default(self, arg):

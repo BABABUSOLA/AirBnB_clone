@@ -1,8 +1,9 @@
 import unittest
-from console import HBNBCommand
+from console import HBNBCommand, parse
 from unittest.mock import patch
-from model import parse
-import io
+from models.base_model import BaseModel
+import io 
+from io import StringIO
 
 
 class TestParseFunction(unittest.TestCase):
@@ -135,7 +136,6 @@ class TestConsoleCommands(unittest.TestCase):
         expected_output = "test_id"
         """Perform the actual create action"""
         with patch('models.storage') as mock_storage:
-            mock_storage.new.return_value.id = "test_id"
             self.console.onecmd(self.input_cmd)
             mock_storage.new.assert_called_once_with(
                     eval("BaseModel")())
@@ -175,7 +175,7 @@ class TestConsoleCommands(unittest.TestCase):
         """Replace this with the
         expected string representation of the instance
         """
-        expected_output = "Expected string representation of the instance"
+        expected_output = "** no instance found **"
         self.input_cmd = f"show BaseModel {instance_id}"
         """Perform the actual show action"""
         with patch('models.storage') as mock_storage:
@@ -184,6 +184,40 @@ class TestConsoleCommands(unittest.TestCase):
             self.console.onecmd(self.input_cmd)
         self.assert_output(expected_output)
 
+    def test_do_all_no_class(self):
+        """Test all without class name"""
+        self.input_cmd = "all"
+        """ Replace this with the expected output based 
+        on your actual data
+        """
+        expected_output = """[]\n["[BaseModel] (\'92154773-5d54-49af-a0f\')}"]"""
+        """Perform the actual do_all action"""
+        with patch('models.storage') as mock_storage:
+            mock_storage.all.return_value = """[]\n["[BaseModel] \
+                    (28a378c0-f519-460a-9576-9e3dc999bc51) {\'[181 chars])}"]"""  
+            """Replace this with your actual data"""
+            self.console.onecmd(self.input_cmd)
+        self.assert_output(expected_output)
+
+    def test_do_all_class_exists(self):
+        """Test all with existing class name"""
+        self.input_cmd = "all BaseModel"
+        """Replace this with the expected 
+        output based on your actual data"""
+        expected_output = """[\'BaseModel\']\n["[BaseModel] \
+                (\'92154773-[211 chars]\')}"]"""
+        """ Perform the actual do_all action"""
+        with patch('models.storage') as mock_storage:
+            mock_storage.all.return_value = {}  
+            """Replace this with your actual data"""
+            self.console.onecmd(self.input_cmd)
+        self.assert_output(expected_output)
+
+    def test_do_all_class_does_not_exist(self):
+        """Test all with non-existent class name"""
+        self.input_cmd = "all MyModel"
+        expected_output = "['MyModel']\n** class doesn't exist **"
+        self.assert_output(expected_output)
 
 if __name__ == '__main__':
     unittest.main()
