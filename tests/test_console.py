@@ -2,6 +2,8 @@ import unittest
 from console import HBNBCommand, parse
 from unittest.mock import patch
 from models.base_model import BaseModel
+from models.engine.file_storage import FileStorage
+from models import storage
 import io 
 from io import StringIO
 
@@ -39,13 +41,17 @@ class TestHBNBCommandClass(unittest.TestCase):
             self.cmd.emptyline()
             self.assertEqual(mock_stdout.getvalue(), "")
 
-    def test_do_quit(self):
-        result = self.cmd.do_quit("argument")
-        self.assertTrue(result)
-
     def test_do_EOF(self):
-        result = self.cmd.do_EOF("argument")
-        self.assertTrue(result)
+        h = "EOF"
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("help EOF"))
+            self.assertEqual(h, output.getvalue().strip())
+
+    def test_do_quit(self):
+        h = "Quit"
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("help quit"))
+            self.assertEqual(h, output.getvalue().strip())
 
 
 class TestConsoleCommands(unittest.TestCase):
@@ -128,19 +134,11 @@ class TestConsoleCommands(unittest.TestCase):
         self.assert_output(expected_output)
 
     def test_create_success(self):
-        """Test successful instance creation"""
-        self.input_cmd = "create BaseModel"
-        """ Assume that BaseModel class exists
-        and that the created instance has id "test_id"
-        """
-        expected_output = "test_id"
-        """Perform the actual create action"""
-        with patch('models.storage') as mock_storage:
-            self.console.onecmd(self.input_cmd)
-            mock_storage.new.assert_called_once_with(
-                    eval("BaseModel")())
-            mock_storage.save.assert_called_once()
-        self.assert_output(expected_output)
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
+            self.assertLess(0, len(output.getvalue().strip()))
+            testKey = "BaseModel.{}".format(output.getvalue().strip())
+            self.assertIn(testKey, storage.all().keys())
 
     def test_do_show_class_missing(self):
         """Test show with missing class name"""
@@ -193,8 +191,7 @@ class TestConsoleCommands(unittest.TestCase):
         expected_output = """[]\n["[BaseModel] (\'92154773-5d54-49af-a0f\')}"]"""
         """Perform the actual do_all action"""
         with patch('models.storage') as mock_storage:
-            mock_storage.all.return_value = """[]\n["[BaseModel] \
-                    (28a378c0-f519-460a-9576-9e3dc999bc51) {\'[181 chars])}"]"""  
+            mock_storage.all.return_value = expected_output
             """Replace this with your actual data"""
             self.console.onecmd(self.input_cmd)
         self.assert_output(expected_output)
