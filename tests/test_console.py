@@ -1,6 +1,6 @@
 import unittest
 from console import HBNBCommand, parse
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from models.base_model import BaseModel
 from models.engine.file_storage import FileStorage
 from models import storage
@@ -107,19 +107,16 @@ class TestConsoleCommands(unittest.TestCase):
         self.input_cmd = "destroy BaseModel 1234"
         expected_output = "** no instance found **"
         self.assert_output(expected_output)
-
-    def test_destroy_success(self):
-        """Test successful instance deletion"""
-        """Assume that there's a BaseModel
-        instance with id "test_id" in storage
-        """
-        self.input_cmd = "destroy BaseModel test_id"
-        expected_output = ""
-        """ Perform the actual destroy action"""
-        with patch('models.storage') as mock_storage:
-            self.console.onecmd(self.input_cmd)
-            mock_storage.save.assert_called_once()
-        self.assert_output(expected_output)
+    
+    def test_destroy_objects_space_notation(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
+            testID = output.getvalue().strip()
+        with patch("sys.stdout", new=StringIO()) as output:
+            obj = storage.all()["BaseModel.{}".format(testID)]
+            command = "destroy BaseModel {}".format(testID)
+            self.assertFalse(HBNBCommand().onecmd(command))
+            self.assertNotIn(obj, storage.all())
 
     def test_create_class_missing(self):
         """Test create with missing class name"""
@@ -183,32 +180,19 @@ class TestConsoleCommands(unittest.TestCase):
         self.assert_output(expected_output)
 
     def test_do_all_no_class(self):
-        """Test all without class name"""
-        self.input_cmd = "all"
-        """ Replace this with the expected output based 
-        on your actual data
-        """
-        expected_output = """[]\n["[BaseModel] (\'92154773-5d54-49af-a0f\')}"]"""
-        """Perform the actual do_all action"""
-        with patch('models.storage') as mock_storage:
-            mock_storage.all.return_value = expected_output
-            """Replace this with your actual data"""
-            self.console.onecmd(self.input_cmd)
-        self.assert_output(expected_output)
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("all"))
+            self.assertIn("BaseModel", output.getvalue().strip())
+
 
     def test_do_all_class_exists(self):
-        """Test all with existing class name"""
-        self.input_cmd = "all BaseModel"
-        """Replace this with the expected 
-        output based on your actual data"""
-        expected_output = """[\'BaseModel\']\n["[BaseModel] \
-                (\'92154773-[211 chars]\')}"]"""
-        """ Perform the actual do_all action"""
-        with patch('models.storage') as mock_storage:
-            mock_storage.all.return_value = {}  
-            """Replace this with your actual data"""
-            self.console.onecmd(self.input_cmd)
-        self.assert_output(expected_output)
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("all BaseModel"))
+            self.assertIn("BaseModel", output.getvalue().strip())
 
     def test_do_all_class_does_not_exist(self):
         """Test all with non-existent class name"""
