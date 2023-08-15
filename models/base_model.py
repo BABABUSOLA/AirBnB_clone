@@ -25,8 +25,9 @@ class BaseModel:
         if len(kwargs) != 0:
             for key, value in kwargs.items():
                 if key == 'created_at' or key == 'updated_at':
-                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
-                setattr(self, key, value)
+                    self.__dict__[k] = datetime.strptime(value, time_format)
+                else:
+                    self.__dict__[k] = v
         else:
             models.storage.new(self)
 
