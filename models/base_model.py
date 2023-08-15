@@ -27,7 +27,7 @@ class BaseModel:
                 if key == 'created_at' or key == 'updated_at':
                     self.__dict__[k] = datetime.strptime(value, time_format)
                 else:
-                    self.__dict__[k] = v
+                    self.__dict__[k] = value
         else:
             models.storage.new(self)
 
