@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from models.base_model import BaseModel
 from models.engine.file_storage import FileStorage
 from models import storage
-import io 
+import io
 from io import StringIO
 
 
@@ -101,7 +101,7 @@ class TestConsoleCommands(unittest.TestCase):
         self.input_cmd = "destroy BaseModel"
         expected_output = "** instance id missing **"
         self.assert_output(expected_output)
-    
+
     def test_destroy_objects_space_notation(self):
         with patch("sys.stdout", new=StringIO()) as output:
             self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
@@ -166,7 +166,6 @@ class TestConsoleCommands(unittest.TestCase):
         with patch("sys.stdout", new=StringIO()) as output:
             self.assertFalse(HBNBCommand().onecmd("all"))
             self.assertIn("BaseModel", output.getvalue().strip())
-
 
     def test_do_all_class_exists(self):
         with patch("sys.stdout", new=StringIO()) as output:
