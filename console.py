@@ -43,16 +43,6 @@ class HBNBCommand(cmd.Cmd):
         """Empty line"""
         pass
 
-    def do_quit(self, arg):
-        """Quit command to exit the program."""
-        print(arg)
-        return True
-
-    def do_EOF(self, arg):
-        """EOF signal to exit the program."""
-        print("")
-        return True
-
     def default(self, arg):
         """Default behavior for cmd module when input is invalid"""
         argdict = {
@@ -73,6 +63,16 @@ class HBNBCommand(cmd.Cmd):
                     return argdict[command[0]](call)
         print("*** Unknown syntax: {}".format(arg))
         return False
+
+    def do_quit(self, arg):
+        """Quit command to exit the program."""
+        print(arg)
+        return True
+
+    def do_EOF(self, arg):
+        """EOF signal to exit the program."""
+        print("")
+        return True
 
     def do_create(self, arg):
         """Usage: create <class>
