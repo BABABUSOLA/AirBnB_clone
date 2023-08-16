@@ -102,8 +102,11 @@ class FileStorage:
         """
         objd = FileStorage.__objects
         obj_dict = {obj: objd[obj].to_dict() for obj in objd.keys()}
-        with open(FileStorage.__file_path, 'w') as file:
-            json.dump(obj_dict, file)
+        try:
+            with open(FileStorage.__file_path, 'w') as file:
+                json.dump(obj_dict, file)
+        except FileNotFoundError:
+            return
 
     def reload(self):
         """
