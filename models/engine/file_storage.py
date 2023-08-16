@@ -19,7 +19,7 @@ class FileStorage:
     """
 
     __file_path = "file.json"
-    __objects = []
+    __objects = {}
 
     @staticmethod
     def camel_to_snake(name):
