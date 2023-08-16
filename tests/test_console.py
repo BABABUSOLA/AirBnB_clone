@@ -6,6 +6,7 @@ from models.engine.file_storage import FileStorage
 from models import storage
 import io
 from io import StringIO
+import os
 
 
 class TestParseFunction(unittest.TestCase):
@@ -31,26 +32,40 @@ class TestParseFunction(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class TestHBNBCommand_prompting(unittest.TestCase):
+    """Unittests for testing prompting of the HBNB command interpreter."""
+
+    def test_prompt_string(self):
+        self.assertEqual("(hbnb) ", HBNBCommand.prompt)
+
+    def test_empty_line(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd(""))
+            self.assertEqual("", output.getvalue().strip())
+
+
 class TestHBNBCommandClass(unittest.TestCase):
 
     def setUp(self):
         self.cmd = HBNBCommand()
 
-    def test_emptyline(self):
-        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-            self.cmd.emptyline()
-            self.assertEqual(mock_stdout.getvalue(), "")
-
-    def test_do_EOF(self):
-        h = "EOF"
-        with patch("sys.stdout", new=StringIO()) as output:
-            self.assertFalse(HBNBCommand().onecmd("help EOF"))
-            self.assertEqual(h, output.getvalue().strip())
-
-    def test_do_quit(self):
-        h = "Quit"
+    def test_help_quit(self):
+        h = "Quit command to exit the program."
         with patch("sys.stdout", new=StringIO()) as output:
             self.assertFalse(HBNBCommand().onecmd("help quit"))
+            self.assertEqual(h, output.getvalue().strip())
+
+    def test_help_create(self):
+        h = ("Usage: create <class>\n        "
+             "Create a new class instance and print its id.")
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("help create"))
+            self.assertEqual(h, output.getvalue().strip())
+
+    def test_help_EOF(self):
+        h = "EOF signal to exit the program."
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("help EOF"))
             self.assertEqual(h, output.getvalue().strip())
 
 
@@ -64,18 +79,6 @@ class TestConsoleCommands(unittest.TestCase):
         self.console.onecmd(self.input_cmd)
         self.assertEqual(mock_stdout.
                          getvalue().strip(), expected_output)
-
-    def test_do_quit(self):
-        """Test quit command"""
-        self.input_cmd = "quit"
-        with self.assertRaises(SystemExit):
-            self.console.onecmd(self.input_cmd)
-
-    def test_do_EOF(self):
-        """Test EOF command"""
-        self.input_cmd = "EOF"
-        with self.assertRaises(SystemExit):
-            self.console.onecmd(self.input_cmd)
 
     @patch('sys.stdout', new_callable=io.StringIO)
     def test_emptyline(self, mock_stdout):
@@ -180,13 +183,6 @@ class TestConsoleCommands(unittest.TestCase):
         expected_output = "['MyModel']\n** class doesn't exist **"
         self.assert_output(expected_output)
 
-    def test_count_object(self):
-        with patch("sys.stdout", new=StringIO()) as output:
-            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
-        with patch("sys.stdout", new=StringIO()) as output:
-            self.assertFalse(HBNBCommand().onecmd("BaseModel.count()"))
-            self.assertEqual("1", output.getvalue().strip())
-
     def test_update_valid_string_attr_space_notation(self):
         with patch("sys.stdout", new=StringIO()) as output:
             HBNBCommand().onecmd("create BaseModel")
@@ -195,6 +191,41 @@ class TestConsoleCommands(unittest.TestCase):
         self.assertFalse(HBNBCommand().onecmd(testCmd))
         test_dict = storage.all()["BaseModel.{}".format(testId)].__dict__
         self.assertEqual("attr_value", test_dict["attr_name"])
+
+
+class TestHBNBCommand_count(unittest.TestCase):
+    """Unittests for testing count method of HBNB comand interpreter."""
+
+    @classmethod
+    def setUp(self):
+        try:
+            os.rename("file.json", "tmp")
+        except IOError:
+            pass
+        FileStorage._FileStorage__objects = {}
+
+    @classmethod
+    def tearDown(self):
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+
+    def test_count_invalid_class(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("MyModel.count()"))
+            self.assertEqual("0", output.getvalue().strip())
+
+    def test_count_object(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create BaseModel"))
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("BaseModel.count()"))
+            self.assertEqual("1", output.getvalue().strip())
 
 
 if __name__ == '__main__':
