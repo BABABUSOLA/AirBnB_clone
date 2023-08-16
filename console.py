@@ -55,6 +55,7 @@ class HBNBCommand(cmd.Cmd):
         """
         EOF
         """
+        print("")
         return True
 
     def default(self, arg):
