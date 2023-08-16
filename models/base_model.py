@@ -45,7 +45,7 @@ class BaseModel:
         Update the `updated_at` attribute with the current datetime.
         and call the save method on storage
         """
-        self.updated_at = datetime.today()
+        self.updated_at = datetime.utcnow()
         models.storage.save()
 
     def to_dict(self):
