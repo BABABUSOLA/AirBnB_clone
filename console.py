@@ -43,12 +43,12 @@ class HBNBCommand(cmd.Cmd):
         """Empty line"""
         pass
 
-    def do_quit(self, line):
+    def do_quit(self, arg):
         """Quit command to exit the program."""
-        print(line)
+        print(arg)
         return True
 
-    def do_EOF(self, line):
+    def do_EOF(self, arg):
         """EOF signal to exit the program."""
         print("")
         return True
@@ -250,4 +250,8 @@ class HBNBCommand(cmd.Cmd):
 
 
 if __name__ == "__main__":
-    HBNBCommand().cmdloop()
+    try:
+        HBNBCommand().cmdloop()
+    except KeyboardInterrupt:
+        print()
+        pass
