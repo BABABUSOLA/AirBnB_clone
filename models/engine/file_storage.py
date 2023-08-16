@@ -101,8 +101,7 @@ class FileStorage:
         (path: __file_path).
         """
         objd = FileStorage.__objects
-        obj_dict = {key: objd[obj].to_dict()
-                    for obj in objd.keys()}
+        obj_dict = {obj: objd[obj].to_dict() for obj in objd.keys()}
         with open(FileStorage.__file_path, 'w') as file:
             json.dump(obj_dict, file)
 
