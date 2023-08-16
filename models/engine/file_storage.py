@@ -19,7 +19,7 @@ class FileStorage:
     """
 
     __file_path = "file.json"
-    __objects = {}
+    __objects = []
 
     @staticmethod
     def camel_to_snake(name):
@@ -101,6 +101,8 @@ class FileStorage:
         (path: __file_path).
         """
         objd = FileStorage.__objects
+        if objd is None:
+            pass
         obj_dict = {obj: objd[obj].to_dict() for obj in objd.keys()}
         with open(FileStorage.__file_path, 'w') as file:
             json.dump(obj_dict, file)
