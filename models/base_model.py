@@ -48,6 +48,7 @@ class BaseModel:
         try:
             self.updated_at = datetime.now()
             models.storage.new(self)
+            models.storage.save()
         except ImportError:
             return
 
