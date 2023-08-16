@@ -106,7 +106,7 @@ class FileStorage:
             with open(FileStorage.__file_path, 'w') as file:
                 json.dump(obj_dict, file)
         except FileNotFoundError:
-            return
+            pass
 
     def reload(self):
         """
@@ -121,4 +121,4 @@ class FileStorage:
                     del o["__class__"]
                     self.new(eval(cls_name)(**o))
         except FileNotFoundError:
-            return
+            pass
