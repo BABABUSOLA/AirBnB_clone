@@ -43,19 +43,19 @@ class HBNBCommand(cmd.Cmd):
         """
         Empty line
         """
+        print("")
         pass
 
     def do_quit(self, line):
-        """
-        Quit
-        """
+        """Quit command to exit"""
+        print(line)
         return True
 
     def do_EOF(self, line):
         """
         EOF
         """
-        print("")
+        print(line)
         return True
 
     def default(self, arg):
